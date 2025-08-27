@@ -19,6 +19,11 @@ const pool = mysql.createPool({
     connectionLimit: 10
 });
 
+// ------------------ HEALTH CHECK ------------------
+app.get('/', (req, res) => {
+    res.status(200).json({ mensaje: "Soy la API Node.js" });
+});
+
 // ------------------ AUTH ------------------
 app.post('/registro', async (req, res) => {
     const { username, nombre_completo, password, foto_perfil = 'default_profile.jpg' } = req.body;
