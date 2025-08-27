@@ -3,24 +3,53 @@ import hashlib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
+from mysql.connector import Error
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_NAME = os.getenv("DB_NAME", "artgallery")
-PORT = int(os.getenv("FLASK_PORT", 5000))
 
 app = Flask(__name__)
 CORS(app)
 
-def get_conn():
-    return mysql.connector.connect(
-        host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME
-    )
+PORT = int(os.getenv("PORT", 5000))
 
+# Función para conectar a la base de datos
+def get_db_connection():
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASS"),
+            database=os.getenv("DB_NAME"),
+            port=int(os.getenv("DB_PORT"))
+        )
+        return conn
+    except Error as e:
+        print(f"Error al conectar a la base de datos: {e}")
+        return None
+
+# Endpoint de prueba
+@app.route("/", methods=["GET"])
+def health_check():
+    return jsonify({"mensaje": "Soy la API de Python"}), 200
+
+@app.route('/test-db', methods=['GET'])
+def test_db():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "No se pudo conectar a la base de datos"}), 500
+
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SHOW TABLES;")
+        tables = cursor.fetchall()
+        return jsonify({"tables": tables})
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 # ------------------ AUTH ------------------
 @app.route("/registro", methods=["POST"])
 def registro():
@@ -34,7 +63,7 @@ def registro():
         return jsonify({"error":"Faltan campos"}), 400
 
     hashed = hashlib.md5(password.encode()).hexdigest()
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("INSERT INTO usuarios (username, nombre_completo, password_md5, foto_perfil) VALUES (%s,%s,%s,%s)",
@@ -54,7 +83,7 @@ def login():
     if not (username and password):
         return jsonify({"error":"Faltan campos"}), 400
     hashed = hashlib.md5(password.encode()).hexdigest()
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, username, nombre_completo, saldo, foto_perfil FROM usuarios WHERE username=%s AND password_md5=%s", (username, hashed))
     user = cursor.fetchone()
@@ -67,7 +96,7 @@ def login():
 # ------------------ GALERÍA ------------------
 @app.route("/galeria", methods=["GET"])
 def galeria():
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, titulo, autor, año_publicacion, disponible, precio, imagen_url FROM obras_arte")
     rows = cursor.fetchall()
@@ -82,7 +111,7 @@ def comprar():
     if not (usuario_id and obra_id):
         return jsonify({"error":"Faltan campos"}), 400
 
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         conn.start_transaction()
@@ -116,7 +145,7 @@ def comprar():
 # ------------------ PERFIL ------------------
 @app.route("/usuario/<int:uid>", methods=["GET"])
 def get_usuario(uid):
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, username, nombre_completo, saldo, foto_perfil FROM usuarios WHERE id=%s", (uid,))
     row = cursor.fetchone()
@@ -136,7 +165,7 @@ def edit_usuario(uid):
         return jsonify({"error":"Se requiere contraseña para confirmar"}), 400
     hashed_confirm = hashlib.md5(password_confirm.encode()).hexdigest()
 
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT password_md5 FROM usuarios WHERE id=%s", (uid,))
     r = cursor.fetchone()
@@ -165,7 +194,7 @@ def add_saldo(uid):
     monto = data.get("monto")
     if monto is None:
         return jsonify({"error":"Falta monto"}),400
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE usuarios SET saldo = saldo + %s WHERE id=%s", (monto, uid))
     conn.commit()
@@ -174,7 +203,7 @@ def add_saldo(uid):
 
 @app.route("/usuario/<int:uid>/compras", methods=["GET"])
 def compras_usuario(uid):
-    conn = get_conn()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT o.id, o.titulo, o.autor, o.año_publicacion, o.imagen_url, c.fecha_compra

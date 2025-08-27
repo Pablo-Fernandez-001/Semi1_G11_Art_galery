@@ -167,5 +167,5 @@ app.get('/usuario/:id/compras', async (req, res) => {
     res.json(rows);
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor Node.js corriendo en puerto ${PORT}`));
