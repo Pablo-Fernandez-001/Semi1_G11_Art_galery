@@ -1,6 +1,6 @@
 // src/services/api.js
 let BASE = import.meta.env.VITE_API_BASE_URL || ""; // si se define en .env lo usa
-const DEV_BACKENDS = ["http://18.223.160.122:5000", "http://localhost:5000"];
+const DEV_BACKENDS = ["http://18.223.160.122:5000", "http://18.218.51.122:5000"];
 
 async function detectBackend() {
   if (BASE) return BASE; // si ya viene de la env, lo usamos
