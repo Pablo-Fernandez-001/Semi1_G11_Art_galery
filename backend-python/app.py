@@ -216,4 +216,4 @@ def compras_usuario(uid):
     return jsonify(rows)
 
 if __name__ == "__main__":
-    app.run(host="18.223.160.122", port=PORT, debug=True)
+    app.run(host="0.0.0.0", port=PORT, debug=True)
