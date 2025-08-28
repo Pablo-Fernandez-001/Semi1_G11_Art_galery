@@ -111,6 +111,8 @@ Se configuraron usuarios con los siguientes permisos mínimos necesarios:
 
 ![](/images/RDS_8.jpeg)
 
+![](/images/diagrama-db.jpg)
+
 ### ___Balanceador de tráfico___
 ![](/images/Balanceador_1.png)
 
