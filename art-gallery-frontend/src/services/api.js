@@ -1,20 +1,28 @@
 // src/services/api.js
-let BASE = import.meta.env.VITE_API_BASE_URL || ""; // si se define en .env lo usa
-const DEV_BACKENDS = ["http://18.223.160.122:5000", "http://18.218.51.122:5000"];
+let BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+
+// Balanceador de carga (se prueban ambas variantes: raíz y /api)
+const DEV_BACKENDS = [
+  "http://balanceador-api-1581958558.us-east-2.elb.amazonaws.com",
+];
 
 async function detectBackend() {
-  if (BASE) return BASE; // si ya viene de la env, lo usamos
+  // Si viene por .env, úsalo tal cual
+  if (BASE) return BASE;
+
+  // Probar el ALB con /galeria (tu backend está en español)
   for (let url of DEV_BACKENDS) {
     try {
-      const res = await fetch(`${url}/galeria`, { method: "GET" });
-      if (res.ok) return url;
+      const res = await fetch(`${url.replace(/\/+$/, "")}`, { method: "GET" });
+      if (res.ok) return url.replace(/\/+$/, "");
     } catch {}
   }
-  return DEV_BACKENDS[0]; // fallback al primero
+  // Fallback al primero
+  return DEV_BACKENDS[0].replace(/\/+$/, "");
 }
 
 // Promise que resuelve BASE
-const baseReady = detectBackend().then(url => {
+const baseReady = detectBackend().then((url) => {
   BASE = url;
   console.log("API base detectada:", BASE);
 });
@@ -31,10 +39,13 @@ async function request(
     opts.body = JSON.stringify(body);
   }
 
-  // 🔎 log opcional para depuración
-  console.log("API Request:", method, `${BASE}${path}`, body);
+  // Asegura que el path inicie con "/"
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  const res = await fetch(`${BASE}${path}`, opts);
+  // 🔎 log opcional para depuración
+  console.log("API Request:", method, `${BASE}${cleanPath}`, body || "");
+
+  const res = await fetch(`${BASE}${cleanPath}`, opts);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   return res.headers.get("content-type")?.includes("application/json")
@@ -49,7 +60,7 @@ export const api = {
   putFile: async (presignedUrl, file) => {
     const res = await fetch(presignedUrl, {
       method: "PUT",
-      headers: { "Content-Type": file.type },
+      headers: { "Content-Type": file.type || "application/octet-stream" },
       body: file,
     });
     if (!res.ok) throw new Error(`S3 PUT ${res.status}`);
