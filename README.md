@@ -94,6 +94,18 @@ Se configuraron usuarios con los siguientes permisos mínimos necesarios:
 ![alt text](/images/EC2_2.png)
 
 ### ___Bucket S3___
+![](/images/S3_buckets_practica1.png)
+
+![](/images/S3_bucket_imagenes.png)
+
+![](/images/S3_carpetaFotosPublicadas.png)
+
+![](/images/S3_bucket_paginaweb.png)
+
+![](/images/S3_configuracion_alojamiento_estatico.png)
+
+![](/images/S3_politica_bucket_paginaweb.png)
+
 ### ___Data Base RDS___
 ![](/images/RDS_1.jpeg)
 
@@ -121,3 +133,17 @@ Se configuraron usuarios con los siguientes permisos mínimos necesarios:
 ![](/images/Balanceador_3.png)
 
 ### ___App Web___
+
+![](/images/appWeb_login.png)
+
+![](/images/appWeb_perfil.png)
+
+![](/images/appWeb_registro.png)
+
+![](/images/appWeb_galeria.png)
+
+![](/images/appWeb_editarPerfil.png)
+
+![](/images/appWeb_obrasAdquiridas.png)
+
+![](/images/appWeb_addSaldo.png)
