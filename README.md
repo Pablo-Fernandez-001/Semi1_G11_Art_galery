@@ -134,6 +134,9 @@ Se configuraron usuarios con los siguientes permisos mínimos necesarios:
 
 ### ___App Web___
 
+Enlace de pagina web estatica alojada en S3
+   http://practica1-g11-paginaweb--1.s3-website.us-east-2.amazonaws.com/
+
 ![](/images/appWeb_login.png)
 
 ![](/images/appWeb_perfil.png)
